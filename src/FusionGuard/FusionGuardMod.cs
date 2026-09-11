@@ -4,7 +4,7 @@ using HarmonyLib;
 using LabFusion.Network;
 using MelonLoader;
 
-[assembly: MelonInfo(typeof(FusionGuard.FusionGuardMod), "FusionGuard", "0.1.0", "FusionGuard")]
+[assembly: MelonInfo(typeof(FusionGuard.FusionGuardMod), "Fusion Anti Cheat", "0.1.0", "FusionGuard")]
 [assembly: MelonGame("Stress Level Zero", "BONELAB")]
 
 namespace FusionGuard
@@ -22,7 +22,7 @@ namespace FusionGuard
             BlockAvatarChanges = category.CreateEntry("block_avatar_changes", false);
             AllowedAvatarBarcodes = category.CreateEntry("allowed_avatar_barcodes", string.Empty);
             HarmonyInstance.PatchAll(typeof(FusionGuardMod).Assembly);
-            LoggerInstance.Msg("Avatar policy is active. Blocking is host-side only.");
+            LoggerInstance.Msg("Fusion Anti Cheat is active. Avatar policy is host-side only.");
         }
     }
 

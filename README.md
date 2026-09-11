@@ -1,4 +1,4 @@
-# Fusion Anti-Cheat
+# Fusion Anti Cheat
 
 Server-side anti-cheat source for LabFusion / BONELAB.
 

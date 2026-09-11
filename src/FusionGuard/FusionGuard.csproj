@@ -4,8 +4,8 @@
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <AssemblyName>FusionGuard</AssemblyName>
-    <RootNamespace>FusionGuard</RootNamespace>
+    <AssemblyName>FusionAntiCheat</AssemblyName>
+    <RootNamespace>FusionAntiCheat</RootNamespace>
     <GameRoot>C:\Program Files (x86)\Steam\steamapps\common\BONELAB</GameRoot>
     <Il2CppAssemblies>$(GameRoot)\MelonLoader\Il2CppAssemblies</Il2CppAssemblies>
   </PropertyGroup>
