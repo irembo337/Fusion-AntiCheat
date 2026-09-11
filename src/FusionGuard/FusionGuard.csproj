@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>FusionGuard</AssemblyName>
+    <RootNamespace>FusionGuard</RootNamespace>
+    <GameRoot>C:\Program Files (x86)\Steam\steamapps\common\BONELAB</GameRoot>
+    <Il2CppAssemblies>$(GameRoot)\MelonLoader\Il2CppAssemblies</Il2CppAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony"><HintPath>$(GameRoot)\MelonLoader\net6\0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="MelonLoader"><HintPath>$(GameRoot)\MelonLoader\net6\MelonLoader.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppInterop.Runtime"><HintPath>$(GameRoot)\MelonLoader\net6\Il2CppInterop.Runtime.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2Cppmscorlib"><HintPath>$(Il2CppAssemblies)\Il2Cppmscorlib.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="LabFusion"><HintPath>$(GameRoot)\Mods\LabFusion.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Assembly-CSharp"><HintPath>$(Il2CppAssemblies)\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="SLZ.Marrow"><HintPath>$(Il2CppAssemblies)\Il2CppSLZ.Marrow.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine"><HintPath>$(Il2CppAssemblies)\UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(Il2CppAssemblies)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>
