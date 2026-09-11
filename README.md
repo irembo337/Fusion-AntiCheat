@@ -6,6 +6,8 @@ Server-side anti-cheat source for LabFusion / BONELAB.
 
 The standalone source in `src/FusionGuard` enforces the avatar policy on the host through `PlayerRepAvatarMessage`. It blocks only the received avatar message; it does not kick or ban players.
 
+Press `F8` in-game to open or close the Fusion Anti Cheat settings panel. `X` is not used.
+
 The mod creates these entries in `UserData/MelonPreferences.cfg`:
 
 ```ini

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HarmonyLib;
 using LabFusion.Network;
 using MelonLoader;
+using UnityEngine;
 
 [assembly: MelonInfo(typeof(FusionGuard.FusionGuardMod), "Fusion Anti Cheat", "0.1.0", "FusionGuard")]
 [assembly: MelonGame("Stress Level Zero", "BONELAB")]
@@ -14,6 +15,7 @@ namespace FusionGuard
         internal static MelonPreferences_Entry<bool> EnforceAvatarAllowlist;
         internal static MelonPreferences_Entry<bool> BlockAvatarChanges;
         internal static MelonPreferences_Entry<string> AllowedAvatarBarcodes;
+        private bool menuOpen;
 
         public override void OnInitializeMelon()
         {
@@ -23,6 +25,41 @@ namespace FusionGuard
             AllowedAvatarBarcodes = category.CreateEntry("allowed_avatar_barcodes", string.Empty);
             HarmonyInstance.PatchAll(typeof(FusionGuardMod).Assembly);
             LoggerInstance.Msg("Fusion Anti Cheat is active. Avatar policy is host-side only.");
+        }
+
+        public override void OnUpdate()
+        {
+            if (Input.GetKeyDown(KeyCode.F8))
+            {
+                menuOpen = !menuOpen;
+            }
+        }
+
+        public override void OnGUI()
+        {
+            if (!menuOpen)
+            {
+                return;
+            }
+
+            GUI.Box(new Rect(24f, 24f, 420f, 210f), "Fusion Anti Cheat");
+            GUI.Label(new Rect(40f, 64f, 380f, 24f), "Host avatar protection");
+            bool allowlist = GUI.Toggle(new Rect(40f, 98f, 380f, 24f), EnforceAvatarAllowlist.Value, "Enforce avatar allowlist");
+            if (allowlist != EnforceAvatarAllowlist.Value)
+            {
+                EnforceAvatarAllowlist.Value = allowlist;
+                MelonPreferences.Save();
+            }
+
+            bool blockChanges = GUI.Toggle(new Rect(40f, 128f, 380f, 24f), BlockAvatarChanges.Value, "Block avatar changes");
+            if (blockChanges != BlockAvatarChanges.Value)
+            {
+                BlockAvatarChanges.Value = blockChanges;
+                MelonPreferences.Save();
+            }
+
+            GUI.Label(new Rect(40f, 158f, 380f, 24f), "Allowlist: " + (string.IsNullOrWhiteSpace(AllowedAvatarBarcodes.Value) ? "empty" : "configured"));
+            GUI.Label(new Rect(40f, 188f, 380f, 24f), "Press F8 to close");
         }
     }
 
