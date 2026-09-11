@@ -1238,6 +1238,14 @@ namespace FusionGuard
 
 		public bool BanCheatAvatar = true;
 
+		// Optional host-side avatar policy. Both settings default to false to avoid
+		// removing players from servers that have not deliberately configured avatars.
+		public bool KickOnAvatarChange;
+
+		public bool EnforceAvatarAllowlist;
+
+		public HashSet<string> AllowedAvatarBarcodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
 		public float CheatVoidY = -500f;
 
 		public bool BlockClientLevel = true;
@@ -1376,9 +1384,9 @@ namespace FusionGuard
 
 		public int BlacklistRefreshMin = 10;
 
-		public string DiscordWebhook = "https://discord.com/api/webhooks/1536745029320843367/5lqsz0l_kALVyWxRfJ2FQ8AbDXdFxhEVCY6ix0FAe538WvnyGQBuqMEglH-xMp7GM_8P";
+		public string DiscordWebhook = "";
 
-		public bool DiscordEnabled = true;
+		public bool DiscordEnabled;
 
 		public static GuardConfig Instance { get; } = new GuardConfig();
 
@@ -1472,6 +1480,12 @@ namespace FusionGuard
 						break;
 					case "ban_cheat_avatar":
 						BanCheatAvatar = ParseBool(text4, BanCheatAvatar);
+						break;
+					case "kick_on_avatar_change":
+						KickOnAvatarChange = ParseBool(text4, KickOnAvatarChange);
+						break;
+					case "enforce_avatar_allowlist":
+						EnforceAvatarAllowlist = ParseBool(text4, EnforceAvatarAllowlist);
 						break;
 					case "cheat_void_y":
 						CheatVoidY = ParseFloat(text4, CheatVoidY);
@@ -1662,6 +1676,9 @@ namespace FusionGuard
 					case "allowed_spawn_barcodes":
 						ParseList(text4, SpawnAllowBarcodes);
 						break;
+					case "allowed_avatar_barcodes":
+						ParseList(text4, AllowedAvatarBarcodes);
+						break;
 					case "banned_steamids":
 						lock (BannedSync)
 						{
@@ -1726,6 +1743,13 @@ namespace FusionGuard
 					"# (PAVELMENU) or forces one specific viewer to see a faked avatar (AIP/Mimicry)",
 					"ban_cheat_teleport=" + BanCheatTeleport,
 					"ban_cheat_avatar=" + BanCheatAvatar,
+					"",
+					"# Avatar policy. Leave both false to allow normal avatar changes.",
+					"# When enabled, violations are blocked and the sender is kicked immediately.",
+					"kick_on_avatar_change=" + KickOnAvatarChange,
+					"enforce_avatar_allowlist=" + EnforceAvatarAllowlist,
+					"# Comma-separated LabFusion avatar barcode/ID values allowed by this server.",
+					"allowed_avatar_barcodes=" + string.Join(",", AllowedAvatarBarcodes),
 					"cheat_void_y=" + CheatVoidY.ToString(CultureInfo.InvariantCulture),
 					"",
 					"# Only allowed players can request level changes",
@@ -1865,6 +1889,9 @@ namespace FusionGuard
 				TeleportHostOnly = true;
 				BanCheatTeleport = true;
 				BanCheatAvatar = true;
+				KickOnAvatarChange = false;
+				EnforceAvatarAllowlist = false;
+				AllowedAvatarBarcodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 				CheatVoidY = -500f;
 				BlockClientLevel = true;
 				AutoKick = true;
@@ -1935,8 +1962,8 @@ namespace FusionGuard
 				WhitelistRefreshMin = 10;
 				BlacklistUrl = "";
 				BlacklistRefreshMin = 10;
-				DiscordWebhook = "https://discord.com/api/webhooks/1536745029320843367/5lqsz0l_kALVyWxRfJ2FQ8AbDXdFxhEVCY6ix0FAe538WvnyGQBuqMEglH-xMp7GM_8P";
-				DiscordEnabled = true;
+				DiscordWebhook = "";
+				DiscordEnabled = false;
 			}
 			catch (Exception)
 			{
@@ -5205,6 +5232,8 @@ namespace FusionGuard
 
 		private static readonly Dictionary<byte, int> _lastMoveStrikeAt;
 
+		private static readonly Dictionary<byte, string> _initialAvatarBarcodes;
+
 		private const int MagazineCacheMax = 256;
 
 		private static readonly Dictionary<string, bool> _magazineCache;
@@ -5265,6 +5294,7 @@ namespace FusionGuard
 			_nameCache = new Dictionary<byte, string>();
 			_moveStrikes = new Dictionary<byte, int>();
 			_lastMoveStrikeAt = new Dictionary<byte, int>();
+			_initialAvatarBarcodes = new Dictionary<byte, string>();
 			_magazineCache = new Dictionary<string, bool>();
 			_magazineOrder = new Queue<string>();
 			_magazineResolve = new Queue<string>();
@@ -5824,6 +5854,10 @@ namespace FusionGuard
 			{
 				return true;
 			}
+			if (!ValidateAvatarPolicy(b.Value, text))
+			{
+				return false;
+			}
 			switch (GateSender(b.Value))
 			{
 			case 1:
@@ -5843,6 +5877,40 @@ namespace FusionGuard
 				}
 				return true;
 			}
+		}
+
+		private static bool ValidateAvatarPolicy(byte sender, string barcode)
+		{
+			if (string.IsNullOrWhiteSpace(barcode))
+			{
+				ScheduleKick(sender, "invalid empty avatar barcode");
+				return false;
+			}
+
+			if (Config.EnforceAvatarAllowlist && !Config.AllowedAvatarBarcodes.Contains(barcode))
+			{
+				ScheduleKick(sender, "avatar is not on the server allowlist: " + barcode);
+				return false;
+			}
+
+			if (!Config.KickOnAvatarChange)
+			{
+				return true;
+			}
+
+			if (!_initialAvatarBarcodes.TryGetValue(sender, out string initial))
+			{
+				_initialAvatarBarcodes[sender] = barcode;
+				return true;
+			}
+
+			if (string.Equals(initial, barcode, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+
+			ScheduleKick(sender, "avatar change is disabled by this server");
+			return false;
 		}
 
 		private static bool AvatarTargetsSingleOther(byte sender, ReceivedMessage received)
@@ -6652,6 +6720,7 @@ namespace FusionGuard
 				{
 					_knownPlayers.Clear();
 					_joinBanned.Clear();
+					_initialAvatarBarcodes.Clear();
 					return;
 				}
 				HashSet<byte> hashSet = new HashSet<byte>();
@@ -6695,6 +6764,7 @@ namespace FusionGuard
 					if (!hashSet.Contains(knownPlayer))
 					{
 						_joinBanned.Remove(knownPlayer);
+						_initialAvatarBarcodes.Remove(knownPlayer);
 					}
 				}
 				_knownPlayers = hashSet;
